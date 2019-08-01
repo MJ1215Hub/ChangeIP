@@ -8,6 +8,7 @@
 #include <QComboBox>
 #include <QtGlobal>
 #include <QProcess>
+#include <QMessageBox>
 
 
 namespace Ui {

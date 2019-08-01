@@ -72,7 +72,9 @@ void MainWindow::on_ScanPushButton_clicked()
 void MainWindow::comboboxIndexChangeSlot(int m_dSelectNum)
 {
     qDebug()<<"select changed";
-    QNetworkInterface tem_SelectNetWork = g_NetWorkInterfaces[m_dSelectNum];
+    QNetworkInterface tem_NetInterface;
+    QList<QNetworkInterface> tem_NetWorkInterfaces = tem_NetInterface.allInterfaces();
+    QNetworkInterface tem_SelectNetWork = tem_NetWorkInterfaces[m_dSelectNum];
     QList<QNetworkAddressEntry> entrylist = tem_SelectNetWork.addressEntries();
     foreach (QNetworkAddressEntry entry, entrylist) {
         if(entry.prefixLength()<64&& entry.prefixLength()>0){
@@ -120,7 +122,8 @@ void MainWindow::on_ChangePushButton_clicked()
 
 //        }
 //    }
-//    process.start(tem_strCommand);
-//    process.waitForFinished();
+    process.start(tem_strCommand);
+    process.waitForFinished();
+    QMessageBox::information(this,QString("information"),QString("completed!"));
 
 }
