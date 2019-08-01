@@ -111,6 +111,12 @@ void MainWindow::on_ChangePushButton_clicked()
 
 #ifdef Q_OS_LINUX//LinuxÏµÍ³ÏÂ
     qDebug()<<"Linux";
+    tem_strCommand = "sudo ifconfig ";
+    tem_strCommand += tem_SelectNetWork.humanReadableName();
+    tem_strCommand += " " + ui->lineEdit->text()+
+            " net mask "+ui->lineEdit_2->text();
+
+    qDebug()<<tem_strCommand;
 
 #endif
 
