@@ -10,6 +10,8 @@ MainWindow::MainWindow(QWidget *parent) :
     this->setMaximumSize(400,200);
     this->setMinimumSize(400,200);
     connect(ui->comboBox,static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged),this,&MainWindow::comboboxIndexChangeSlot);
+    connect(ui->lineEdit,&QLineEdit::textEdited,this,&MainWindow::LineEditEditedSlot);
+    connect(ui->lineEdit_2,&QLineEdit::textEdited,this,&MainWindow::LineEditEditedSlot);
 
     //----------------É¨ÃèÍø¿¨--------------------//
 
@@ -27,48 +29,7 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::on_ScanPushButton_clicked()
-{
-    int tem_dNetNum = 0;
-    g_NetWorkInterfaces = myNetWorkInterface.allInterfaces();
-    foreach (QNetworkInterface m_netinterface, g_NetWorkInterfaces) {
-        QString name = m_netinterface.name();
-        QString address = m_netinterface.hardwareAddress();
-        qDebug()<<tem_dNetNum;
-        //qDebug()<< name<<endl;
-        qDebug()<<m_netinterface.humanReadableName()<<endl;
-        ui->comboBox->addItem(m_netinterface.humanReadableName());
 
-
-//        qDebug()<<address<<endl;
-
-//        QList<QNetworkAddressEntry> entryList = m_netinterface.addressEntries();
-//        foreach(QNetworkAddressEntry entry,entryList){
-//            if(entry.prefixLength()<64 && entry.prefixLength() >0){
-//                qDebug()<<"ip:"<<entry.ip().toString();
-//                qDebug()<<"netmask:"<<entry.netmask().toString();
-//                qDebug()<<"Broadcast:"<<entry.broadcast().toString();
-//                qDebug()<<"PrefixLength:"<<entry.prefixLength();
-//            }
-//        }
-        tem_dNetNum++;
-    }
-    tem_dNetNum = 0;
-    foreach (QNetworkInterface m_netinterface, g_NetWorkInterfaces) {
-        qDebug()<<tem_dNetNum;
-        if(m_netinterface.isValid()){
-            qDebug()<<m_netinterface.humanReadableName()<<"valid";
-        }
-
-        tem_dNetNum++;
-    }
-
-
-
-
-//   qDebug()<< myNetWorkInterface.hardwareAddress();
-
-}
 void MainWindow::comboboxIndexChangeSlot(int m_dSelectNum)
 {
     qDebug()<<"select changed";
@@ -77,23 +38,31 @@ void MainWindow::comboboxIndexChangeSlot(int m_dSelectNum)
     QNetworkInterface tem_SelectNetWork = tem_NetWorkInterfaces[m_dSelectNum];
     QList<QNetworkAddressEntry> entrylist = tem_SelectNetWork.addressEntries();
     foreach (QNetworkAddressEntry entry, entrylist) {
-        if(entry.prefixLength()<64&& entry.prefixLength()>0){
+        if(entry.prefixLength()<64){
             ui->lineEdit->setText(entry.ip().toString());
             ui->lineEdit_2->setText(entry.netmask().toString());
-        }else if(entry.prefixLength()<0){
+            qDebug()<<entry.netmask().toString();
+        }else{
             ui->lineEdit->setText("");
             ui->lineEdit_2->setText("");
         }
+        //qDebug()<<entry.prefixLength();
     }
 }
 
 void MainWindow::on_ChangePushButton_clicked()
 {
     QString tem_strCommand;
-    QNetworkInterface tem_SelectNetWork = g_NetWorkInterfaces[ui->comboBox->currentIndex()];
-//    QList<QNetworkAddressEntry> entrylist = tem_SelectNetWork.addressEntries();
-//    foreach (QNetworkAddressEntry entry, entrylist) {
-//        if(entry.prefixLength()<64){
+
+    bool tem_bMatch = Match(ui->lineEdit->text());
+    tem_bMatch = tem_bMatch && Match(ui->lineEdit_2->text());
+    if(false == tem_bMatch){
+        QMessageBox::information(this,"information","IP or net mask format error!");
+        return;
+    }
+
+    QNetworkInterface tem_SelectNetWork =
+            g_NetWorkInterfaces[ui->comboBox->currentIndex()];
 #ifdef Q_OS_MAC//MacÏµÍ³ÏÂ
     qDebug()<<"Mac";
 
@@ -125,11 +94,31 @@ void MainWindow::on_ChangePushButton_clicked()
 
 
 #endif
-
-//        }
-//    }
     process.start(tem_strCommand);
     process.waitForFinished();
     QMessageBox::information(this,QString("information"),QString("completed!"));
 
+}
+void MainWindow::LineEditEditedSlot(const QString &text)
+{
+    bool tem_bMatch = Match(text);
+    QLineEdit *tem_Sender = static_cast<QLineEdit *>(sender());
+    qDebug()<<tem_Sender->objectName();
+
+    if(true == tem_bMatch){
+        //match ip
+        qDebug()<<"match";
+        tem_Sender->setStyleSheet("background-color: white;");
+    }else{
+        //not match
+        qDebug()<<"Not match";
+        tem_Sender->setStyleSheet("background-color: red;");
+    }
+}
+bool MainWindow::Match(QString text)
+{
+    QString Pattern = "\\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.)"
+                      "{3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\b";
+    QRegExp MyQRegExp(Pattern);
+    return MyQRegExp.exactMatch(text);
 }

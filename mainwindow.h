@@ -24,9 +24,8 @@ public:
     ~MainWindow();
 
 private slots:
-    void on_ScanPushButton_clicked();
-
     void on_ChangePushButton_clicked();
+    void LineEditEditedSlot(const QString &);
 
 private:
     Ui::MainWindow *ui;
@@ -34,6 +33,7 @@ private:
     QList<QNetworkInterface> g_NetWorkInterfaces;
     void comboboxIndexChangeSlot(int m_dSelectNum);
     QProcess process;
+    bool Match(QString);
 };
 
 #endif // MAINWINDOW_H
